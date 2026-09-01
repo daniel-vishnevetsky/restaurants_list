@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>המסעדות של דניאל</title>
+    <style>
+        :root {
+            --primary: #2575fc;
+            --secondary: #6a11cb;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            margin: 0 0 5px 0;
+            color: #1a1a1a;
+        }
+        p.subtitle {
+            color: #666;
+            margin: 0;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        input, select, button {
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            background: white;
+        }
+        input {
+            flex: 1;
+            min-width: 240px;
+        }
+        button {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+        }
+        .card h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .card p {
+            margin: 6px 0;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        .meta-info {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .badge {
+            background: #eef2f7;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .rating {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .distance {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .waze-btn {
+            display: block;
+            text-align: center;
+            background: #00bcd4;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+        .waze-btn:hover {
+            background: #00acc1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>מאגר המסעדות של דניאל</h1>
+        <p class="subtitle">מצא את האוכל המושלם הבא שלך בקלות</p>
+    </header>
+
+    <div class="controls">
+        <input type="text" id="searchInput" placeholder="חפש לפי שם, מטבח או כתובת..." oninput="filterRestaurants()">
+        <select id="areaFilter" onchange="filterRestaurants()">
+            <option value="">כל האזורים</option>
+            <option value="חיפה">חיפה</option>
+            <option value="הקריות">הקריות</option>
+            <option value="תל אביב">תל אביב</option>
+            <option value="ירושלים והסביבה">ירושלים והסביבה</option>
+        </select>
+        <button onclick="getLocationAndSort()">📍 מיין לפי קרבה אליי</button>
+    </div>
+
+    <div class="grid" id="restaurantsGrid">
+        <!-- המסעדות יטענו לכאן אוטומטית -->
+    </div>
+
+    <script>
+        let restaurants = [];
+
+        async function loadData() {
+            try {
+                const response = await fetch('restaurants.json');
+                restaurants = await response.json();
+                displayRestaurants(restaurants);
+            } catch (error) {
+                console.error("שגיאה בטעינת נתונים:", error);
+            }
+        }
+
+        function displayRestaurants(data) {
+            const grid = document.getElementById('restaurantsGrid');
+            grid.innerHTML = '';
+
+            if (data.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1; color: #777;">לא נמצאו מסעדות תואמות.</p>';
+                return;
+            }
+
+            data.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                let distanceHtml = '';
+                if (r.distance !== undefined) {
+                    distanceHtml = `<div class="distance">📍 במרחק ${r.distance.toFixed(1)} ק"מ ממך</div>`;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <h3>${r.name}</h3>
+                        <p><strong>כתובת:</strong> ${r.address}</p>
+                        <p><strong>סגנון:</strong> ${r.style || r.category}</p>
+                        <div class="meta-info">
+                            <span class="badge">${r.kosher}</span>
+                            <span class="badge rating">⭐ ${r.rating}</span>
+                        </div>
+                        ${distanceHtml}
+                    </div>
+                    <a class="waze-btn" href="https://waze.com/ul?q=${encodeURIComponent(r.name + ' ' + r.address)}" target="_blank">נווט עם Waze</a>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterRestaurants() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const area = document.getElementById('areaFilter').value;
+
+            const filtered = restaurants.filter(r => {
+                const matchSearch = r.name.toLowerCase().includes(search) || 
+                                    (r.style && r.style.toLowerCase().includes(search)) || 
+                                    r.address.toLowerCase().includes(search);
+                const matchArea = area === "" || r.area === area;
+                return matchSearch && matchArea;
+            });
+
+            displayRestaurants(filtered);
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
+        function getLocationAndSort() {
+            if (!navigator.geolocation) {
+                alert("הדפדפן שלך לא תומך באיתור מיקום");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(position => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+
+                restaurants.forEach(r => {
+                    if (r.lat && r.lng) {
+                        r.distance = calculateDistance(userLat, userLng, r.lat, r.lng);
+                    }
+                });
+
+                restaurants.sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
+                displayRestaurants(restaurants);
+            }, () => {
+                alert("לא הצלחנו לקבל את המיקום שלך. בדוק הרשאות מיקום בדפדפן.");
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
