@@ -82,6 +82,7 @@
             cursor: pointer;
             font-weight: bold;
         }
+        /* עיצוב המפה */
         #map {
             width: 100%;
             max-width: 1200px;
@@ -178,7 +179,7 @@
         <button class="gps-btn" onclick="getLocationAndSort()">📍 מיין לפי קרבה אליי והצג במפה</button>
     </div>
 
-    <!-- אלמנט המפה -->
+    <!-- כאן הוספנו בחזרה את המפה שתופיע מעל הרשימה -->
     <div id="map"></div>
 
     <div class="grid" id="restaurantsGrid">
@@ -192,6 +193,7 @@
         let userMarkerLayer = L.layerGroup();
 
         function initMap() {
+            if (map) return; // מונע יצירה כפולה
             map = L.map('map').setView([32.7940, 34.9890], 10);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
@@ -222,8 +224,6 @@
             }
 
             const bounds = [];
-
-            // אם יש סיכת משתמש קיימת, נשמור עליה בגבולות המפה
             if (window.currentUserLatLng) {
                 bounds.push(window.currentUserLatLng);
             }
@@ -258,7 +258,7 @@
                 }
             });
 
-            if (bounds.length > 0) {
+            if (map && bounds.length > 0) {
                 map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
             }
         }
@@ -301,7 +301,6 @@
                 const userLng = position.coords.longitude;
                 window.currentUserLatLng = [userLat, userLng];
 
-                // הוספת סיכה בולטת למיקום המשתמש על המפה
                 userMarkerLayer.clearLayers();
                 const userMarker = L.circleMarker([userLat, userLng], {
                     radius: 9,
@@ -313,7 +312,6 @@
                 }).bindPopup("<b>המיקום שלי 📍</b>");
                 userMarkerLayer.addLayer(userMarker);
 
-                // חישוב מרחקים לכל המסעדות
                 restaurants.forEach(r => {
                     if (r.lat && r.lng) {
                         r.distance = calculateDistance(userLat, userLng, r.lat, r.lng);
