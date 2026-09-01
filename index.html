@@ -36,33 +36,24 @@
             font-size: 0.95rem;
             line-height: 1.5;
         }
-        /* עיצוב תיבת הצ'אט / חיפוש החכם */
-        .ai-chat-box {
+        /* תיבת חיפוש מרכזית גדולה וחכמה */
+        .search-container {
             max-width: 600px;
-            margin: 0 auto 25px auto;
+            margin: 0 auto 20px auto;
             background: white;
-            padding: 15px;
+            padding: 10px;
             border-radius: 14px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             display: flex;
             gap: 10px;
         }
-        .ai-chat-box input {
+        .search-container input {
             flex: 1;
             padding: 12px 16px;
             font-size: 1rem;
             border: 1px solid #ddd;
             border-radius: 10px;
             outline: none;
-        }
-        .ai-chat-box button {
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
-            color: white;
-            border: none;
-            padding: 0 20px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
         }
         .controls {
             display: flex;
@@ -162,10 +153,9 @@
         <p class="subtitle">מאגר של מסעדות שמבוסס על ביקור בפועל והמלצות של מסעדות באינסטגרם. כולל עגלות קפה וארוחות בוקר, בתי קפה ותה, קונדיטוריות וגלידריות, אוכל עולמי, אוכל מהיר, חומוסיות, פיצות ופסטות, מסעדות שף וגורמה, סטייקים, דגים, פאבים ויקבים.</p>
     </header>
 
-    <!-- תיבת צ'אט / חיפוש חכם חופשי -->
-    <div class="ai-chat-box">
-        <input type="text" id="aiQuery" placeholder="למשל: 'אני מחפש המבורגר בחיפה' או 'בא לי אסייתי'..." onkeydown="if(event.key === 'Enter') smartSearch()">
-        <button onclick="smartSearch()">שאל את המאגר 🤖</button>
+    <!-- תיבת החיפוש הראשית החכמה -->
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="חפש חופשי (למשל: 'אסייתי קרית ביאליק', 'המבורגר', 'חיפה')..." oninput="filterRestaurants()">
     </div>
 
     <div class="controls">
@@ -230,34 +220,28 @@
             });
         }
 
-        // חיפוש חכם מעודכן שמוצא תוצאות רלוונטיות גם לפי מילות מפתח חלקיות
-        function smartSearch() {
-            const query = document.getElementById('aiQuery').value.toLowerCase();
-            if (!query.trim()) {
-                displayRestaurants(restaurants);
-                return;
-            }
+        // פונקציית סינון חכמה שסורקת את כל שדות המסעדה לפי מילות המפתח שהוקלדו
+        function filterRestaurants() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+            const selectedArea = document.getElementById('areaFilter').value;
 
-            const keywords = query.split(' ').filter(word => word.length > 1);
+            // פיצול מילות החיפוש למילים נפרדות (כדי ש"אסייתי ביאליק" יחפש את שתי המילים)
+            const keywords = searchQuery.split(/\s+/).filter(word => word.length > 0);
 
             const filtered = restaurants.filter(r => {
-                const textToSearch = `${r.name} ${r.address} ${r.style || ''} ${r.category || ''} ${r.area || ''} ${r.kosher || ''}`.toLowerCase();
+                // יצירת מחרוזת טקסט גדולה מכל שדות המסעדה
+                const fullText = `${r.name} ${r.address} ${r.style || ''} ${r.category || ''} ${r.area || ''} ${r.kosher || ''}`.toLowerCase();
+
+                // בדיקה האם כל מילות החפש (או חלקן) קיימות בטקסט של המסעדה
+                const matchesSearch = keywords.length === 0 || keywords.every(keyword => fullText.includes(keyword));
                 
-                // בדיקה האם לפחות אחת ממילות החיפוש המרכזיות מופיעה בפרטי המסעדה
-                return keywords.some(keyword => textToSearch.includes(keyword));
+                // בדיקת התאמה לאזור
+                const matchesArea = selectedArea === "" || r.area === selectedArea;
+
+                return matchesSearch && matchesArea;
             });
 
             displayRestaurants(filtered);
-        }
-
-        function filterRestaurants() {
-            const area = document.getElementById('areaFilter').value;
-            if (area === "") {
-                displayRestaurants(restaurants);
-            } else {
-                const filtered = restaurants.filter(r => r.area === area);
-                displayRestaurants(filtered);
-            }
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -287,7 +271,9 @@
                 });
 
                 restaurants.sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
-                displayRestaurants(restaurants);
+                
+                // שומר על תוצאות החיפוש הנוכחיות או מציג הכל לפי הצורך
+                filterRestaurants();
             }, () => {
                 alert("לא הצלחנו לקבל את המיקום שלך. בדוק הרשאות מיקום בדפדפן.");
             });
