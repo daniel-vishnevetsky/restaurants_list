@@ -164,7 +164,7 @@
 
     <!-- תיבת צ'אט / חיפוש חכם חופשי -->
     <div class="ai-chat-box">
-        <input type="text" id="aiQuery" placeholder="למשל: 'אני מחפש המבורגר בחיפה' או 'בא לי איטלקי כשר'..." onkeydown="if(event.key === 'Enter') smartSearch()">
+        <input type="text" id="aiQuery" placeholder="למשל: 'אני מחפש המבורגר בחיפה' או 'בא לי אסייתי'..." onkeydown="if(event.key === 'Enter') smartSearch()">
         <button onclick="smartSearch()">שאל את המאגר 🤖</button>
     </div>
 
@@ -230,7 +230,7 @@
             });
         }
 
-        // חיפוש חכם שמנתח את כל המילים שהמשתמש כתב
+        // חיפוש חכם מעודכן שמוצא תוצאות רלוונטיות גם לפי מילות מפתח חלקיות
         function smartSearch() {
             const query = document.getElementById('aiQuery').value.toLowerCase();
             if (!query.trim()) {
@@ -238,14 +238,13 @@
                 return;
             }
 
-            // פיצול המשפט למילים נפרדות כדי לחפש כל מילה (למשל "המבורגר" וגם "חיפה")
             const keywords = query.split(' ').filter(word => word.length > 1);
 
             const filtered = restaurants.filter(r => {
                 const textToSearch = `${r.name} ${r.address} ${r.style || ''} ${r.category || ''} ${r.area || ''} ${r.kosher || ''}`.toLowerCase();
                 
-                // המסעדה תיבחר אם היא מכילה לפחות את רוב מילות החיפוש שהוקלדו
-                return keywords.every(keyword => textToSearch.includes(keyword));
+                // בדיקה האם לפחות אחת ממילות החיפוש המרכזיות מופיעה בפרטי המסעדה
+                return keywords.some(keyword => textToSearch.includes(keyword));
             });
 
             displayRestaurants(filtered);
