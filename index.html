@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>המסעדות של דניאל</title>
+    <title>מאגר המסעדות של דניאל וישנבצקי</title>
     <style>
         :root {
             --primary: #2575fc;
@@ -22,14 +22,19 @@
         header {
             text-align: center;
             margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
         h1 {
-            margin: 0 0 5px 0;
+            margin: 0 0 10px 0;
             color: #1a1a1a;
         }
         p.subtitle {
-            color: #666;
+            color: #555;
             margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
         .controls {
             display: flex;
@@ -85,7 +90,7 @@
             transform: translateY(-3px);
         }
         .card h3 {
-            margin: 0 0 10px 0;
+            margin: 0 0 12px 0;
             color: #2c3e50;
         }
         .card p {
@@ -97,7 +102,7 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin: 10px 0;
+            margin: 12px 0;
         }
         .badge {
             background: #eef2f7;
@@ -106,20 +111,16 @@
             border-radius: 6px;
             font-size: 0.85rem;
         }
-        .rating {
-            color: #f39c12;
-            font-weight: bold;
-        }
         .distance {
             color: #27ae60;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             margin-top: 5px;
         }
-        .waze-btn {
+        .maps-btn {
             display: block;
             text-align: center;
-            background: #00bcd4;
+            background: #4285F4;
             color: white;
             text-decoration: none;
             padding: 10px;
@@ -129,16 +130,16 @@
             margin-top: 15px;
             transition: background 0.2s;
         }
-        .waze-btn:hover {
-            background: #00acc1;
+        .maps-btn:hover {
+            background: #3367d6;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>מאגר המסעדות של דניאל</h1>
-        <p class="subtitle">מצא את האוכל המושלם הבא שלך בקלות</p>
+        <h1>מאגר המסעדות של דניאל וישנבצקי</h1>
+        <p class="subtitle">מאגר של מסעדות שמבוסס על ביקור בפועל והמלצות של מסעדות באינסטגרם. כולל עגלות קפה וארוחות בוקר, בתי קפה ותה, קונדיטוריות וגלידריות, אוכל עולמי, אוכל מהיר, חומוסיות, פיצות ופסטות, מסעדות שף וגורמה, סטייקים, דגים, פאבים ויקבים.</p>
     </header>
 
     <div class="controls">
@@ -192,14 +193,13 @@
                     <div>
                         <h3>${r.name}</h3>
                         <p><strong>כתובת:</strong> ${r.address}</p>
-                        <p><strong>סגנון:</strong> ${r.style || r.category}</p>
+                        <p><strong>מטבח/סגנון:</strong> ${r.style || r.category}</p>
                         <div class="meta-info">
-                            <span class="badge">${r.kosher}</span>
-                            <span class="badge rating">⭐ ${r.rating}</span>
+                            <span class="badge">כשרות: ${r.kosher}</span>
                         </div>
                         ${distanceHtml}
                     </div>
-                    <a class="waze-btn" href="https://waze.com/ul?q=${encodeURIComponent(r.name + ' ' + r.address)}" target="_blank">נווט עם Waze</a>
+                    <a class="maps-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + ' ' + r.address)}" target="_blank">נווט עם Google Maps</a>
                 `;
                 grid.appendChild(card);
             });
