@@ -21,7 +21,7 @@
         }
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
@@ -36,6 +36,34 @@
             font-size: 0.95rem;
             line-height: 1.5;
         }
+        /* עיצוב תיבת הצ'אט / חיפוש החכם */
+        .ai-chat-box {
+            max-width: 600px;
+            margin: 0 auto 25px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex;
+            gap: 10px;
+        }
+        .ai-chat-box input {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+        }
+        .ai-chat-box button {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
         .controls {
             display: flex;
             gap: 12px;
@@ -46,7 +74,7 @@
             margin-left: auto;
             margin-right: auto;
         }
-        input, select, button {
+        select, button.gps-btn {
             padding: 12px 16px;
             font-size: 1rem;
             border: 1px solid #ddd;
@@ -54,20 +82,12 @@
             outline: none;
             background: white;
         }
-        input {
-            flex: 1;
-            min-width: 240px;
-        }
-        button {
+        button.gps-btn {
             background: linear-gradient(135deg, var(--secondary), var(--primary));
             color: white;
             border: none;
             cursor: pointer;
             font-weight: bold;
-            transition: opacity 0.2s;
-        }
-        button:hover {
-            opacity: 0.9;
         }
         .grid {
             display: grid;
@@ -142,8 +162,13 @@
         <p class="subtitle">מאגר של מסעדות שמבוסס על ביקור בפועל והמלצות של מסעדות באינסטגרם. כולל עגלות קפה וארוחות בוקר, בתי קפה ותה, קונדיטוריות וגלידריות, אוכל עולמי, אוכל מהיר, חומוסיות, פיצות ופסטות, מסעדות שף וגורמה, סטייקים, דגים, פאבים ויקבים.</p>
     </header>
 
+    <!-- תיבת צ'אט / חיפוש חכם חופשי -->
+    <div class="ai-chat-box">
+        <input type="text" id="aiQuery" placeholder="למשל: 'אני מחפש המבורגר בחיפה' או 'בא לי איטלקי כשר'..." onkeydown="if(event.key === 'Enter') smartSearch()">
+        <button onclick="smartSearch()">שאל את המאגר 🤖</button>
+    </div>
+
     <div class="controls">
-        <input type="text" id="searchInput" placeholder="חפש לפי שם, מטבח או כתובת..." oninput="filterRestaurants()">
         <select id="areaFilter" onchange="filterRestaurants()">
             <option value="">כל האזורים</option>
             <option value="חיפה">חיפה</option>
@@ -151,7 +176,7 @@
             <option value="תל אביב">תל אביב</option>
             <option value="ירושלים והסביבה">ירושלים והסביבה</option>
         </select>
-        <button onclick="getLocationAndSort()">📍 מיין לפי קרבה אליי</button>
+        <button class="gps-btn" onclick="getLocationAndSort()">📍 מיין לפי קרבה אליי</button>
     </div>
 
     <div class="grid" id="restaurantsGrid">
@@ -176,7 +201,7 @@
             grid.innerHTML = '';
 
             if (data.length === 0) {
-                grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1; color: #777;">לא נמצאו מסעדות תואמות.</p>';
+                grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1; color: #777;">לא נמצאו מסעדות תואמות לחיפוש.</p>';
                 return;
             }
 
@@ -205,19 +230,35 @@
             });
         }
 
-        function filterRestaurants() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const area = document.getElementById('areaFilter').value;
+        // חיפוש חכם שמנתח את כל המילים שהמשתמש כתב
+        function smartSearch() {
+            const query = document.getElementById('aiQuery').value.toLowerCase();
+            if (!query.trim()) {
+                displayRestaurants(restaurants);
+                return;
+            }
+
+            // פיצול המשפט למילים נפרדות כדי לחפש כל מילה (למשל "המבורגר" וגם "חיפה")
+            const keywords = query.split(' ').filter(word => word.length > 1);
 
             const filtered = restaurants.filter(r => {
-                const matchSearch = r.name.toLowerCase().includes(search) || 
-                                    (r.style && r.style.toLowerCase().includes(search)) || 
-                                    r.address.toLowerCase().includes(search);
-                const matchArea = area === "" || r.area === area;
-                return matchSearch && matchArea;
+                const textToSearch = `${r.name} ${r.address} ${r.style || ''} ${r.category || ''} ${r.area || ''} ${r.kosher || ''}`.toLowerCase();
+                
+                // המסעדה תיבחר אם היא מכילה לפחות את רוב מילות החיפוש שהוקלדו
+                return keywords.every(keyword => textToSearch.includes(keyword));
             });
 
             displayRestaurants(filtered);
+        }
+
+        function filterRestaurants() {
+            const area = document.getElementById('areaFilter').value;
+            if (area === "") {
+                displayRestaurants(restaurants);
+            } else {
+                const filtered = restaurants.filter(r => r.area === area);
+                displayRestaurants(filtered);
+            }
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
