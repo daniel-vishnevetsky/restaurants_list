@@ -4,177 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מאגר המסעדות של דניאל וישנבצקי</title>
-    <!-- טעינת ספריות המפה של Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        :root {
-            --primary: #2575fc;
-            --secondary: #6a11cb;
-            --bg: #f4f7f6;
-            --card-bg: #ffffff;
-            --text: #333333;
-        }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        h1 {
-            margin: 0 0 10px 0;
-            color: #1a1a1a;
-        }
-        p.subtitle {
-            color: #555;
-            margin: 0 0 10px 0;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        .ai-warning {
-            color: #d9534f;
-            font-weight: bold;
-            font-size: 0.85rem;
-            background: #fdf2f2;
-            padding: 8px;
-            border-radius: 6px;
-            display: inline-block;
-        }
-        .ai-chat-box {
-            max-width: 650px;
-            margin: 0 auto 20px auto;
-            background: white;
-            padding: 10px;
-            border-radius: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            display: flex;
-            gap: 10px;
-        }
-        .ai-chat-box input {
-            flex: 1;
-            padding: 12px 16px;
-            font-size: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            outline: none;
-        }
-        .ai-chat-box button {
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
-            color: white;
-            border: none;
-            padding: 0 20px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .controls {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        select, button.gps-btn {
-            padding: 12px 16px;
-            font-size: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            outline: none;
-            background: white;
-        }
-        button.gps-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button.gps-btn:hover {
-            background: #c0392b;
-        }
-        #map {
-            width: 100%;
-            max-width: 1200px;
-            height: 400px;
-            margin: 0 auto 25px auto;
-            border-radius: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .card {
-            background: var(--card-bg);
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-3px);
-        }
-        .card h3 {
-            margin: 0 0 12px 0;
-            color: #2c3e50;
-        }
-        .card p {
-            margin: 6px 0;
-            color: #555;
-            font-size: 0.95rem;
-        }
-        .meta-info {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin: 12px 0;
-        }
-        .badge {
-            background: #eef2f7;
-            color: #333;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-        .distance-badge {
-            background: #d1e7dd;
-            color: #0f5132;
-            font-weight: bold;
-        }
-        .maps-btn {
-            display: block;
-            text-align: center;
-            background: #4285F4;
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-top: 15px;
-            transition: background 0.2s;
-        }
-        .maps-btn:hover {
-            background: #3367d6;
-        }
+        :root { --primary: #2575fc; --secondary: #6a11cb; --bg: #f4f7f6; --card-bg: #ffffff; --text: #333333; }
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        header { text-align: center; margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        h1 { margin: 0 0 10px 0; color: #1a1a1a; }
+        p.subtitle { color: #555; margin: 0 0 10px 0; font-size: 0.95rem; line-height: 1.5; }
+        .ai-warning { color: #d9534f; font-weight: bold; font-size: 0.85rem; background: #fdf2f2; padding: 8px; border-radius: 6px; display: inline-block; }
+        .ai-chat-box { max-width: 650px; margin: 0 auto 20px auto; background: white; padding: 10px; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; gap: 10px; }
+        .ai-chat-box input { flex: 1; padding: 12px 16px; font-size: 1rem; border: 1px solid #ddd; border-radius: 10px; outline: none; }
+        .ai-chat-box button { background: linear-gradient(135deg, var(--secondary), var(--primary)); color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; max-width: 900px; margin-left: auto; margin-right: auto; }
+        select, button.gps-btn, button.reset-btn { padding: 12px 16px; font-size: 1rem; border: 1px solid #ddd; border-radius: 10px; outline: none; background: white; }
+        button.gps-btn { background: #e74c3c; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button.gps-btn:hover { background: #c0392b; }
+        button.reset-btn { background: #7f8c8d; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button.reset-btn:hover { background: #95a5a6; }
+        #map { width: 100%; max-width: 1200px; height: 400px; margin: 0 auto 25px auto; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: 14px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-3px); }
+        .card h3 { margin: 0 0 12px 0; color: #2c3e50; }
+        .card p { margin: 6px 0; color: #555; font-size: 0.95rem; }
+        .meta-info { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+        .badge { background: #eef2f7; color: #333; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; }
+        .distance-badge { background: #d1e7dd; color: #0f5132; font-weight: bold; }
+        .maps-btn { display: block; text-align: center; background: #4285F4; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; margin-top: 15px; transition: background 0.2s; }
+        .maps-btn:hover { background: #3367d6; }
     </style>
 </head>
 <body>
@@ -186,12 +44,13 @@
     </header>
 
     <div class="ai-chat-box">
-        <input type="text" id="searchInput" placeholder="חפש חופשי (למשל: 'אסייתי קרית ביאליק', 'המבורגר')..." onkeydown="if(event.key === 'Enter') filterRestaurants()">
+        <input type="text" id="searchInput" placeholder="חפש חופשי (למשל: 'אסייתי קרית ביאליק', 'המבורגר')..." onkeydown="if(event.key === 'Enter') filterRestaurants()" oninput="if(this.value.trim() === '') filterRestaurants()">
         <button onclick="filterRestaurants()">שאל את המאגר 🤖</button>
     </div>
 
     <div class="controls">
         <button class="gps-btn" onclick="findNearMe()">קרוב אליי 📍</button>
+        <button class="reset-btn" onclick="resetFilters()">איפוס 🔄</button>
         <select id="areaFilter" onchange="filterRestaurants()">
             <option value="">כל האזורים</option>
             <option value="השרון והסביבה">השרון והסביבה</option>
@@ -206,7 +65,6 @@
     </div>
 
     <div id="map"></div>
-
     <div class="grid" id="restaurantsGrid"></div>
 
     <script>
@@ -215,7 +73,6 @@
         let markersLayer = L.layerGroup();
         let userLocation = null;
 
-        // מילים שנתעלם מהן בחיפוש חופשי
         const stopWords = ['באלי', 'בא', 'לי', 'אני', 'רוצה', 'מחפש', 'מסעדה', 'של', 'לאכול'];
 
         function initMap() {
@@ -229,7 +86,7 @@
 
         async function loadData() {
             try {
-                const response = await fetch('restaurants.json');
+                const response = await fetch('restaurants.json?t=' + new Date().getTime());
                 restaurants = await response.json();
                 initMap();
                 displayRestaurants(restaurants);
@@ -239,7 +96,7 @@
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // רדיוס כדור הארץ בק"מ
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -266,10 +123,18 @@
                     .openPopup();
                 
                 map.setView([userLocation.lat, userLocation.lng], 13);
-                filterRestaurants(); // מבצע סינון וממיין לפי מרחק
+                filterRestaurants(); 
             }, () => {
                 alert("לא הצלחנו לאתר את מיקומך. ודא ששירותי המיקום (GPS) דולקים.");
             });
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('areaFilter').value = '';
+            userLocation = null;
+            map.setView([32.7940, 34.9890], 9);
+            filterRestaurants();
         }
 
         function displayRestaurants(data) {
@@ -283,17 +148,16 @@
             }
 
             data.forEach(r => {
-                // הוספת סיכה למפה אם יש קואורדינטות
                 if (r.lat && r.lng) {
                     L.marker([r.lat, r.lng]).addTo(markersLayer)
-                     .bindPopup(`<b>${r.name}</b><br>${r.address}`);
+                     .bindPopup(`<b>${r.name || r["שם המסעדה"]}</b><br>${r.address || r["כתובת מדויקת"]}`);
                 }
 
                 const card = document.createElement('div');
                 card.className = 'card';
                 
                 let distanceHtml = '';
-                if (r.distance !== undefined && r.distance !== Infinity) {
+                if (r.distance !== undefined && r.distance < 99999) {
                     distanceHtml = `<span class="badge distance-badge">מרחק: ${r.distance.toFixed(1)} ק"מ</span>`;
                 }
 
@@ -317,7 +181,6 @@
             const searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
             const selectedArea = document.getElementById('areaFilter').value;
 
-            // סינון מילות קישור ("באלי") ותיקון שגיאות כתיב ("אסייאתי" -> "אסייתי")
             let keywords = searchInput.split(/\s+/)
                 .filter(word => word.length > 0 && !stopWords.includes(word))
                 .map(word => word.replace('אסייאתי', 'אסייתי').replace('אסיאתי', 'אסייתי'));
@@ -330,15 +193,15 @@
                 return matchesSearch && matchesArea;
             });
 
-            // אם ידוע מיקום המשתמש - חשב מרחקים ומיין מהקרוב לרחוק
             if (userLocation) {
                 filtered.forEach(r => {
                     if (r.lat && r.lng) {
-                        r.distance = calculateDistance(userLocation.lat, userLocation.lng, r.lat, r.lng);
+                        r.distance = calculateDistance(userLocation.lat, userLocation.lng, parseFloat(r.lat), parseFloat(r.lng));
                     } else {
-                        r.distance = Infinity;
+                        r.distance = 999999;
                     }
                 });
+                
                 filtered.sort((a, b) => a.distance - b.distance);
             }
 
