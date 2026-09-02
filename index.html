@@ -35,11 +35,19 @@
         }
         p.subtitle {
             color: #555;
-            margin: 0;
+            margin: 0 0 10px 0;
             font-size: 0.95rem;
             line-height: 1.5;
         }
-        /* עיצוב תיבת החיפוש והכפתור שביקשת */
+        .ai-warning {
+            color: #d9534f;
+            font-weight: bold;
+            font-size: 0.85rem;
+            background: #fdf2f2;
+            padding: 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
         .ai-chat-box {
             max-width: 650px;
             margin: 0 auto 20px auto;
@@ -68,9 +76,6 @@
             cursor: pointer;
             white-space: nowrap;
         }
-        .ai-chat-box button:hover {
-            opacity: 0.9;
-        }
         .controls {
             display: flex;
             gap: 12px;
@@ -90,11 +95,14 @@
             background: white;
         }
         button.gps-btn {
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            background: #e74c3c;
             color: white;
             border: none;
             cursor: pointer;
             font-weight: bold;
+        }
+        button.gps-btn:hover {
+            background: #c0392b;
         }
         #map {
             width: 100%;
@@ -146,6 +154,11 @@
             border-radius: 6px;
             font-size: 0.85rem;
         }
+        .distance-badge {
+            background: #d1e7dd;
+            color: #0f5132;
+            font-weight: bold;
+        }
         .maps-btn {
             display: block;
             text-align: center;
@@ -169,36 +182,41 @@
     <header>
         <h1>מאגר המסעדות של דניאל וישנבצקי</h1>
         <p class="subtitle">מאגר של מסעדות שמבוסס על ביקור בפועל והמלצות של מסעדות באינסטגרם. כולל עגלות קפה וארוחות בוקר, בתי קפה ותה, קונדיטוריות וגלידריות, אוכל עולמי, אוכל מהיר, חומוסיות, פיצות ופסטות, מסעדות שף וגורמה, סטייקים, דגים, פאבים ויקבים.</p>
+        <div class="ai-warning">תשומת לב: הכתובות ונקודות הציון חושבו על בסיס מודל AI וייתכנו טעויות במיקומים.</div>
     </header>
 
-    <!-- תיבת החיפוש החכם יחד עם כפתור "שאל את המאגר" שביקשת -->
     <div class="ai-chat-box">
         <input type="text" id="searchInput" placeholder="חפש חופשי (למשל: 'אסייתי קרית ביאליק', 'המבורגר')..." onkeydown="if(event.key === 'Enter') filterRestaurants()">
         <button onclick="filterRestaurants()">שאל את המאגר 🤖</button>
     </div>
 
     <div class="controls">
+        <button class="gps-btn" onclick="findNearMe()">קרוב אליי 📍</button>
         <select id="areaFilter" onchange="filterRestaurants()">
             <option value="">כל האזורים</option>
             <option value="השרון והסביבה">השרון והסביבה</option>
             <option value="הצפון והגליל">הצפון והגליל</option>
             <option value="הקריות">הקריות</option>
-            <option value="נתניה">נתניה</option>
             <option value="חיפה">חיפה</option>
+            <option value="נתניה">נתניה</option>
+            <option value="תל אביב">תל אביב</option>
+            <option value="ירושלים והסביבה">ירושלים והסביבה</option>
+            <option value="אילת">אילת</option>
         </select>
     </div>
 
-    <!-- מפה אינטראקטיבית -->
     <div id="map"></div>
 
-    <div class="grid" id="restaurantsGrid">
-        <!-- המסעדות יטענו לכאן אוטומטית -->
-    </div>
+    <div class="grid" id="restaurantsGrid"></div>
 
     <script>
         let restaurants = [];
         let map;
         let markersLayer = L.layerGroup();
+        let userLocation = null;
+
+        // מילים שנתעלם מהן בחיפוש חופשי
+        const stopWords = ['באלי', 'בא', 'לי', 'אני', 'רוצה', 'מחפש', 'מסעדה', 'של', 'לאכול'];
 
         function initMap() {
             if (map) return;
@@ -220,6 +238,40 @@
             }
         }
 
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // רדיוס כדור הארץ בק"מ
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function findNearMe() {
+            if (!navigator.geolocation) {
+                alert("הדפדפן שלך לא תומך באיתור מיקום.");
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(position => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                L.marker([userLocation.lat, userLocation.lng]).addTo(map)
+                    .bindPopup("אתה נמצא כאן 📍")
+                    .openPopup();
+                
+                map.setView([userLocation.lat, userLocation.lng], 13);
+                filterRestaurants(); // מבצע סינון וממיין לפי מרחק
+            }, () => {
+                alert("לא הצלחנו לאתר את מיקומך. ודא ששירותי המיקום (GPS) דולקים.");
+            });
+        }
+
         function displayRestaurants(data) {
             const grid = document.getElementById('restaurantsGrid');
             grid.innerHTML = '';
@@ -231,37 +283,64 @@
             }
 
             data.forEach(r => {
+                // הוספת סיכה למפה אם יש קואורדינטות
+                if (r.lat && r.lng) {
+                    L.marker([r.lat, r.lng]).addTo(markersLayer)
+                     .bindPopup(`<b>${r.name}</b><br>${r.address}`);
+                }
+
                 const card = document.createElement('div');
                 card.className = 'card';
                 
+                let distanceHtml = '';
+                if (r.distance !== undefined && r.distance !== Infinity) {
+                    distanceHtml = `<span class="badge distance-badge">מרחק: ${r.distance.toFixed(1)} ק"מ</span>`;
+                }
+
                 card.innerHTML = `
                     <div>
-                        <h3>${r.name}</h3>
-                        <p><strong>כתובת:</strong> ${r.address}</p>
-                        <p><strong>מטבח/סגנון:</strong> ${r.style || r.category}</p>
+                        <h3>${r.name || r["שם המסעדה"]}</h3>
+                        <p><strong>כתובת:</strong> ${r.address || r["כתובת מדויקת"]}</p>
+                        <p><strong>מטבח/סגנון:</strong> ${r.style || r["מטבח / סגנון"]}</p>
                         <div class="meta-info">
-                            <span class="badge">כשרות: ${r.kosher}</span>
+                            <span class="badge">כשרות: ${r.kosher || r["כשרות"]}</span>
+                            ${distanceHtml}
                         </div>
                     </div>
-                    <a class="maps-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + ' ' + r.address)}" target="_blank">נווט עם Google Maps</a>
+                    <a class="maps-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((r.name || r["שם המסעדה"]) + ' ' + (r.address || r["כתובת מדויקת"]))}" target="_blank">נווט עם Google Maps</a>
                 `;
                 grid.appendChild(card);
             });
         }
 
         function filterRestaurants() {
-            const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+            const searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
             const selectedArea = document.getElementById('areaFilter').value;
 
-            const keywords = searchQuery.split(/\s+/).filter(word => word.length > 0);
+            // סינון מילות קישור ("באלי") ותיקון שגיאות כתיב ("אסייאתי" -> "אסייתי")
+            let keywords = searchInput.split(/\s+/)
+                .filter(word => word.length > 0 && !stopWords.includes(word))
+                .map(word => word.replace('אסייאתי', 'אסייתי').replace('אסיאתי', 'אסייתי'));
 
-            const filtered = restaurants.filter(r => {
-                const fullText = `${r.name} ${r.address} ${r.style || ''} ${r.category || ''} ${r.area || ''} ${r.kosher || ''}`.toLowerCase();
+            let filtered = restaurants.filter(r => {
+                const fullText = `${r.name || r["שם המסעדה"]} ${r.address || r["כתובת מדויקת"]} ${r.style || r["מטבח / סגנון"]} ${r.category || r["קטגוריה ראשית"]} ${r.area || r["אזור גיאוגרפי"]}`.toLowerCase();
                 const matchesSearch = keywords.length === 0 || keywords.every(keyword => fullText.includes(keyword));
-                const matchesArea = selectedArea === "" || r.area === selectedArea;
+                const matchesArea = selectedArea === "" || (r.area || r["אזור גיאוגרפי"]) === selectedArea;
 
                 return matchesSearch && matchesArea;
             });
+
+            // אם ידוע מיקום המשתמש - חשב מרחקים ומיין מהקרוב לרחוק
+            if (userLocation) {
+                filtered.forEach(r => {
+                    if (r.lat && r.lng) {
+                        r.distance = calculateDistance(userLocation.lat, userLocation.lng, r.lat, r.lng);
+                    } else {
+                        r.distance = Infinity;
+                    }
+                });
+                filtered.sort((a, b) => a.distance - b.distance);
+            }
 
             displayRestaurants(filtered);
         }
