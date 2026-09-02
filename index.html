@@ -44,7 +44,7 @@
     </header>
 
     <div class="ai-chat-box">
-        <input type="text" id="searchInput" placeholder="חפש חופשי (למשל: 'אסייתי קרית ביאליק', 'המבורגר')..." onkeydown="if(event.key === 'Enter') filterRestaurants()" oninput="if(this.value.trim() === '') filterRestaurants()">
+        <input type="text" id="searchInput" placeholder="חפש חופשי (למשל: 'תביא לי מסעדות בשוק תלפיות בחיפה')..." onkeydown="if(event.key === 'Enter') filterRestaurants()" oninput="if(this.value.trim() === '') filterRestaurants()">
         <button onclick="filterRestaurants()">שאל את המאגר 🤖</button>
     </div>
 
@@ -73,7 +73,8 @@
         let markersLayer = L.layerGroup();
         let userLocation = null;
 
-        const stopWords = ['באלי', 'בא', 'לי', 'אני', 'רוצה', 'מחפש', 'מסעדה', 'של', 'לאכול'];
+        // מילון חכם למחיקת מילות קישור טבעיות בעברית
+        const stopWords = ['תביא', 'לי', 'מסעדות', 'מסעדה', 'בא', 'באלי', 'אני', 'רוצה', 'מחפש', 'של', 'לאכול', 'איפה', 'יש', 'מקום', 'באזור', 'באיזור', 'כאן', 'פה', 'שם', 'קרוב', 'טוב', 'הכי', 'המלצה', 'המלצות'];
 
         function initMap() {
             if (map) return;
@@ -181,9 +182,19 @@
             const searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
             const selectedArea = document.getElementById('areaFilter').value;
 
+            // עיבוד טקסט חכם
             let keywords = searchInput.split(/\s+/)
-                .filter(word => word.length > 0 && !stopWords.includes(word))
-                .map(word => word.replace('אסייאתי', 'אסייתי').replace('אסיאתי', 'אסייתי'));
+                .map(w => w.replace(/[,.?!]/g, '')) // מחיקת פסיקים ונקודות
+                .filter(word => word.length > 1 && !stopWords.includes(word))
+                .map(word => {
+                    if (word.includes('אסייאתי') || word.includes('אסיאתי')) return 'אסייתי';
+                    
+                    // קילוף קידומות נפוצות מילים עם 4 אותיות ומעלה
+                    let cleanWord = word;
+                    if (cleanWord.startsWith('ב') && cleanWord.length > 3) cleanWord = cleanWord.substring(1);
+                    if (cleanWord.startsWith('ה') && cleanWord.length > 3) cleanWord = cleanWord.substring(1);
+                    return cleanWord;
+                });
 
             let filtered = restaurants.filter(r => {
                 const fullText = `${r.name || r["שם המסעדה"]} ${r.address || r["כתובת מדויקת"]} ${r.style || r["מטבח / סגנון"]} ${r.category || r["קטגוריה ראשית"]} ${r.area || r["אזור גיאוגרפי"]}`.toLowerCase();
